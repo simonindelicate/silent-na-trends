@@ -1,0 +1,18 @@
+reddit:
+  subreddits:
+    - beer
+    - nonalcoholic
+    - stopdrinking
+x:
+  search_queries:
+    - '("non-alcoholic beer" OR "NA beer" OR hopwater) lang:en'
+news_rss:
+  - https://www.bevnet.com/feed/
+  - https://www.brewersassociation.org/feed/
+  - https://www.prnewswire.com/rss/consumer-products-retail.xml
+trends_terms:
+  - non alcoholic beer
+  - NA beer
+  - alcohol free beer
+  - 0.0 beer
+  - hop water

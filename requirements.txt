@@ -1,0 +1,12 @@
+python-dotenv
+pyyaml
+requests
+tqdm
+pandas
+beautifulsoup4
+feedparser
+snscrape
+pytrends
+python-pptx
+jinja2
+orjson

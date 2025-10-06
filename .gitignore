@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Data
+data/raw/
+data/archive/
+data/context/
+data/outputs/
+*.duckdb
