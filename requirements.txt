@@ -10,3 +10,5 @@ pytrends
 python-pptx
 jinja2
 orjson
+openai>=1.40.0
+python-docx
