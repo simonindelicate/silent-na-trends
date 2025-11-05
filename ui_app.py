@@ -182,7 +182,7 @@ st.divider()
 # Buttons
 b1 = st.button("Step 1 — Ingest")
 b2 = st.button("Step 2 — Prepare Context")
-b3 = st.button("Step 3 — Generate Report (MD + DOCX)")
+b3 = st.button("Step 3 — Generate Report")
 b_all = st.button("Run All")
 
 log = st.empty()
@@ -205,7 +205,16 @@ def do_prepare(rid: str):
     stream_task(f"Prepare [{rid}]", run_script("02_prepare_context.py", env_extra={"RUN_ID": rid}), 66)
 
 def do_report(rid: str):
-    stream_task(f"Report [{rid}]", run_script("03_generate_report.py", env_extra={"RUN_ID": rid}), 95)
+    stream_task(
+        f"Report [{rid}] — markdown",
+        run_script("03_generate_report.py", env_extra={"RUN_ID": rid}),
+        90,
+    )
+    stream_task(
+        f"Report [{rid}] — docx",
+        run_script("04_markdown_to_docx.py", env_extra={"RUN_ID": rid}),
+        98,
+    )
 
 def maybe_upload(rid: str):
     docx = latest_output(rid, "weekly_brief.docx")

@@ -4,8 +4,11 @@
 # - Larger headings (H1/H2/H3)
 # - Basic bullets / numbered lists
 
+import argparse
+import os
 import re
 from pathlib import Path
+from typing import Optional
 from docx import Document
 from docx.shared import Pt
 from docx.oxml import OxmlElement
@@ -13,10 +16,74 @@ from docx.oxml.ns import qn
 from docx.opc.constants import RELATIONSHIP_TYPE
 
 ROOT = Path(__file__).resolve().parents[1]
-MD_PATH = ROOT / "data" / "outputs" / "weekly_brief.md"
-DOCX_PATH = ROOT / "data" / "outputs" / "weekly_brief.docx"
+RUN_ID = os.getenv("RUN_ID")
+
+
+def resolve_output_dir() -> Path:
+    if RUN_ID:
+        base = ROOT / "data" / "runs" / RUN_ID / "outputs"
+    else:
+        base = ROOT / "data" / "outputs"
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+
+OUT_DIR = resolve_output_dir()
+LATEST_DIR = ROOT / "data" / "latest"
+LATEST_DIR.mkdir(parents=True, exist_ok=True)
 
 URL_RE = re.compile(r"(https?://[^\s)]+)")
+
+
+def normalize_path(path: Path) -> Path:
+    path = path.expanduser()
+    return path if path.is_absolute() else (Path.cwd() / path)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Convert weekly brief markdown to DOCX")
+    parser.add_argument("--md", type=Path, help="Path to markdown file to convert")
+    parser.add_argument("--docx", type=Path, help="Optional explicit DOCX output path")
+    return parser.parse_args()
+
+
+def discover_markdown(out_dir: Path, explicit: Optional[Path]) -> Path:
+    if explicit:
+        md_path = normalize_path(explicit)
+        if not md_path.exists():
+            raise FileNotFoundError(f"Markdown file not found: {md_path}")
+        return md_path
+
+    candidates = sorted(out_dir.glob("weekly_brief_*.md"))
+    if candidates:
+        return candidates[-1]
+
+    fallback = out_dir / "weekly_brief.md"
+    if fallback.exists():
+        return fallback
+
+    raise FileNotFoundError(
+        f"No markdown brief found in {out_dir}. Run scripts/03_generate_report.py first."
+    )
+
+
+def resolve_docx_path(md_path: Path, explicit: Optional[Path]) -> Path:
+    if explicit:
+        doc_path = normalize_path(explicit)
+        doc_path.parent.mkdir(parents=True, exist_ok=True)
+        return doc_path
+
+    if md_path.suffix:
+        return md_path.with_suffix(".docx")
+    return md_path.parent / f"{md_path.name}.docx"
+
+
+def write_latest_docx(doc_path: Path, out_dir: Path, latest_dir: Path):
+    data = doc_path.read_bytes()
+    latest_path = out_dir / "weekly_brief.docx"
+    latest_path.write_bytes(data)
+    shared_latest = latest_dir / "weekly_brief.docx"
+    shared_latest.write_bytes(data)
 
 def style_document(doc: Document):
     # Base text
@@ -163,9 +230,11 @@ def md_to_docx(md_text: str) -> Document:
     return doc
 
 if __name__ == "__main__":
-    if not MD_PATH.exists():
-        raise FileNotFoundError(f"Missing {MD_PATH}. Run 03_generate_report.py first.")
-    md = MD_PATH.read_text(encoding="utf-8")
-    doc = md_to_docx(md)
-    doc.save(DOCX_PATH)
-    print(f"Wrote {DOCX_PATH}")
+    args = parse_args()
+    md_path = discover_markdown(OUT_DIR, args.md)
+    md_text = md_path.read_text(encoding="utf-8")
+    doc = md_to_docx(md_text)
+    docx_path = resolve_docx_path(md_path, args.docx)
+    doc.save(docx_path)
+    write_latest_docx(docx_path, OUT_DIR, LATEST_DIR)
+    print(f"Wrote DOCX → {docx_path}")

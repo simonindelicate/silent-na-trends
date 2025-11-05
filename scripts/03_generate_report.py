@@ -1,7 +1,8 @@
 # scripts/03_generate_report.py
-# Generate a weekly brief (Markdown + DOCX) from data/context/context.json using OpenAI.
+# Generate a weekly brief Markdown file from data/context/context.json using OpenAI.
 
 import os
+from datetime import datetime
 from pathlib import Path
 import orjson
 from dotenv import load_dotenv
@@ -12,8 +13,20 @@ OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")  # set to a model your key has
 ROOT = Path(__file__).resolve().parents[1]
 CTX_PATH = ROOT / "data" / "context" / "context.json"
-OUT_DIR = ROOT / "data" / "outputs"
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+RUN_ID = os.getenv("RUN_ID")
+
+def resolve_output_dir() -> Path:
+    """Return the output directory for the current run (defaulting to shared outputs)."""
+    if RUN_ID:
+        base = ROOT / "data" / "runs" / RUN_ID / "outputs"
+    else:
+        base = ROOT / "data" / "outputs"
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+OUT_DIR = resolve_output_dir()
+LATEST_DIR = ROOT / "data" / "latest"
+LATEST_DIR.mkdir(parents=True, exist_ok=True)
 
 SYSTEM_PROMPT = (
     "You are a senior social strategist for a non-alcoholic beer brand serving a US audience. "
@@ -115,53 +128,24 @@ def call_openai(system_text: str, user_text: str, context_json: dict, max_out_to
 def save_markdown(text: str, path: Path):
     path.write_text(text, encoding="utf-8")
 
-def md_to_docx(md_text: str, out_path: Path):
-    # Minimal markdown → docx (headings, bullets, paragraphs)
-    from docx import Document
-    from docx.shared import Pt
-    doc = Document()
-    doc.styles['Normal'].font.name = 'Calibri'
-    doc.styles['Normal'].font.size = Pt(11)
 
-    bullet_mode = False
-    for raw in md_text.splitlines():
-        line = raw.rstrip()
-        if not line.strip():
-            bullet_mode = False
-            doc.add_paragraph("")
-            continue
-        if line.startswith("# "):
-            doc.add_heading(line[2:].strip(), level=1); bullet_mode=False; continue
-        if line.startswith("## "):
-            doc.add_heading(line[3:].strip(), level=2); bullet_mode=False; continue
-        if line.startswith("### "):
-            doc.add_heading(line[4:].strip(), level=3); bullet_mode=False; continue
-        if line.lstrip().startswith("- "):
-            if not bullet_mode:
-                bullet_mode = True
-            p = doc.add_paragraph(line.lstrip()[2:].strip())
-            p.style = doc.styles['List Bullet']
-            continue
-        # naive numbered list
-        ls = line.lstrip()
-        if ls[:2].isdigit() and ls[2:4] == ". ":
-            p = doc.add_paragraph(ls[4:].strip())
-            p.style = doc.styles['List Number']
-            continue
-        bullet_mode = False
-        doc.add_paragraph(line)
-
-    doc.save(out_path)
+def write_latest_copy(text: str, out_dir: Path, latest_dir: Path, filename: str):
+    """Update convenience copies in the run directory and shared latest directory."""
+    latest_path = out_dir / filename
+    latest_path.write_text(text, encoding="utf-8")
+    shared_latest = latest_dir / filename
+    shared_latest.write_text(text, encoding="utf-8")
 
 def main():
     ctx = load_context()
     md = call_openai(SYSTEM_PROMPT, USER_PROMPT, ctx, max_out_tokens=6000)
-    md_path = OUT_DIR / "weekly_brief.md"
+    timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    md_filename = f"weekly_brief_{timestamp}.md"
+    md_path = OUT_DIR / md_filename
     save_markdown(md, md_path)
-    docx_path = OUT_DIR / "weekly_brief.docx"
-    md_to_docx(md, docx_path)
-    print(f"Wrote {md_path}")
-    print(f"Wrote {docx_path}")
+    write_latest_copy(md, OUT_DIR, LATEST_DIR, "weekly_brief.md")
+    print(f"Wrote markdown → {md_path}")
+    print("Next: run scripts/04_markdown_to_docx.py to create the DOCX.")
 
 if __name__ == "__main__":
     main()
