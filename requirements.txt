@@ -7,8 +7,12 @@ beautifulsoup4
 feedparser
 snscrape
 pytrends
-python-pptx
 jinja2
 orjson
 openai>=1.40.0
 python-docx
+streamlit
+google-api-python-client
+google-auth
+google-auth-httplib2
+google-auth-oauthlib

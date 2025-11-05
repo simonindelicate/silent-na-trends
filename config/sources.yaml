@@ -3,24 +3,52 @@ reddit:
     - beer
     - nonalcoholic
     - stopdrinking
+    - nonalcoholicdrinks
+    - CraftBeer
+
 x:
+  # Mix exact phrases, keywords, and account queries via `from:handle`
   search_terms:
-    - non-alcoholic beer
+    - "non-alcoholic beer"
     - "NA beer"
+    - "alcohol-free beer"
     - hopwater
+    - "hop water"
+    # brand/product queries
+    - "BERO beer"
+    - "Athletic Brewing"
+    - "Heineken 0.0"
+    - "Guinness 0.0"
+    - "Brooklyn Special Effects"
+    - "Sierra Nevada Trail Pass"
+    - "Sam Adams Just the Haze"
+    - "HOP WTR"
+    - Hoplark
+    # accounts (as queries)
+    - from:GoodBeerHunting
+    - from:beernet
+    - from:brewbound
+    - from:theiwsr
+    - from:BrewersAssoc
+    - from:berobrewing
+    - from:NABeerClub
+    - from:beeradvocate
   tweet_language: en
   days_back: 7
   max_items: 150
-  sort: Latest   # or Top
+  sort: Latest
+
 news_rss:
   - https://www.bevnet.com/feed/
   - https://www.brewersassociation.org/feed/
   - https://www.prnewswire.com/rss/consumer-products-retail.xml
+  - https://www.brewbound.com/feed/
+
+# Optional for your trends ingestor (kept here since your code checks sources.yaml)
 trends_terms:
-  - non alcoholic beer
+  - non-alcoholic beer
   - NA beer
-  - alcohol free beer
-  - 0.0 beer
   - hop water
+  - hopwater
 trends_geo: US
 trends_time_range: "now 7-d"

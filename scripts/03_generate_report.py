@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
-MODEL = os.getenv("OPENAI_MODEL", "gpt-5")  # set to a model your key has
+MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")  # set to a model your key has
 ROOT = Path(__file__).resolve().parents[1]
 CTX_PATH = ROOT / "data" / "context" / "context.json"
 OUT_DIR = ROOT / "data" / "outputs"
