@@ -21,6 +21,14 @@ APIFY_TOKEN = os.getenv("APIFY_TOKEN")
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 RAW.mkdir(parents=True, exist_ok=True)
+CONFIG_DIR_ENV = os.getenv("CONFIG_DIR", "")
+if CONFIG_DIR_ENV:
+    config_dir_candidate = Path(CONFIG_DIR_ENV)
+    if not config_dir_candidate.is_absolute():
+        config_dir_candidate = (ROOT / config_dir_candidate).resolve()
+else:
+    config_dir_candidate = ROOT / "config"
+CONFIG_DIR = config_dir_candidate
 
 
 # ---------- helpers ----------
@@ -39,6 +47,14 @@ def save_jsonl(path: Path, rows):
     with open(path, "wb") as f:
         for r in rows:
             f.write(orjson.dumps(r) + b"\n")
+
+
+def load_config_yaml(name: str):
+    cfg_path = CONFIG_DIR / name
+    if not cfg_path.exists():
+        raise FileNotFoundError(f"Missing configuration file: {cfg_path}")
+    with open(cfg_path, "r", encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
 
 
 def apify_run(actor_id: str, input_payload: dict):
@@ -349,9 +365,9 @@ def ingest_trends(terms, geo="US", time_range="now 7-d"):
 # ---------- main ----------
 
 if __name__ == "__main__":
-    creators_cfg = yaml.safe_load(open(ROOT / "config" / "creators.yaml", "r", encoding="utf-8"))
-    hashtags_cfg = yaml.safe_load(open(ROOT / "config" / "hashtags.yaml", "r", encoding="utf-8"))
-    sources_cfg  = yaml.safe_load(open(ROOT / "config" / "sources.yaml",  "r", encoding="utf-8"))
+    creators_cfg = load_config_yaml("creators.yaml")
+    hashtags_cfg = load_config_yaml("hashtags.yaml")
+    sources_cfg = load_config_yaml("sources.yaml")
 
     # Instagram
     ig_creators = creators_cfg.get("instagram", [])

@@ -4,9 +4,14 @@ __pycache__/
 .venv/
 .env
 
-# Data
+# Data (generated)
 data/raw/
 data/archive/
 data/context/
 data/outputs/
+data/cache/
+data/latest/
+data/runs/
+data/**/*.json
+data/**/*.jsonl
 *.duckdb

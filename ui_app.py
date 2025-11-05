@@ -22,6 +22,8 @@ RUNS_ROOT = ROOT / "data" / "runs"
 RUNS_ROOT.mkdir(parents=True, exist_ok=True)
 LATEST_DIR = ROOT / "data" / "latest"
 LATEST_DIR.mkdir(parents=True, exist_ok=True)
+DEFAULT_CONFIG_DIR = ROOT / "config"
+SELECTED_CONFIG_DIR = str(DEFAULT_CONFIG_DIR)
 
 ENV_PATH = ROOT / ".env"
 if ENV_PATH.exists():
@@ -43,6 +45,7 @@ def mask(v: str) -> str:
 def run_script(script_relpath: str, args=None, env_extra=None):
     """Run a Python script and stream stdout/stderr lines to the UI."""
     env = os.environ.copy()
+    env["CONFIG_DIR"] = SELECTED_CONFIG_DIR
     if env_extra:
         env.update(env_extra)
 
@@ -74,6 +77,18 @@ def latest_output(run_id: str, name: str):
         return None
     p = out_dir / name
     return p if p.exists() else None
+
+
+def discover_config_dirs():
+    candidates = []
+    for path in sorted(ROOT.iterdir()):
+        if not path.is_dir():
+            continue
+        if all((path / name).is_file() for name in ("creators.yaml", "hashtags.yaml", "sources.yaml")):
+            candidates.append(path)
+    if DEFAULT_CONFIG_DIR.exists() and DEFAULT_CONFIG_DIR not in candidates:
+        candidates.insert(0, DEFAULT_CONFIG_DIR)
+    return candidates
 
 def upload_docx_to_drive_as_gdoc(docx_path: Path, folder_id: str, service_account_file: str):
     """Upload .docx and convert to Google Doc in Drive (returns file id + link)."""
@@ -133,6 +148,28 @@ with st.sidebar.form("env_form", clear_on_submit=False):
         })
         st.success("Saved to .env and applied to this session.")
 
+# Config selection
+st.sidebar.header("Configuration")
+config_dirs = discover_config_dirs()
+if not config_dirs:
+    st.sidebar.error("No configuration folders found with creators/hashtags/sources YAML files.")
+    selected_config_path = DEFAULT_CONFIG_DIR
+else:
+    config_labels = [path.relative_to(ROOT).as_posix() for path in config_dirs]
+    initial = os.getenv("CONFIG_DIR", "")
+    default_index = 0
+    if initial:
+        for idx, path in enumerate(config_dirs):
+            if str(path) == initial or path.name == initial:
+                default_index = idx
+                break
+    selected_label = st.sidebar.selectbox("Config folder", config_labels, index=default_index)
+    selected_config_path = config_dirs[config_labels.index(selected_label)]
+
+SELECTED_CONFIG_DIR = str(selected_config_path)
+os.environ["CONFIG_DIR"] = SELECTED_CONFIG_DIR
+st.sidebar.caption(f"Using config files from: {selected_config_path.relative_to(ROOT)}")
+
 # Run management: create/select RUN_ID
 st.sidebar.header("Run")
 existing = list_runs()
@@ -144,6 +181,7 @@ else:
     run_id = st.sidebar.selectbox("Select an existing run", existing[::-1], index=0)
 
 st.write(f"**Active RUN_ID:** `{run_id}`")
+st.write(f"**Configuration folder:** `{Path(SELECTED_CONFIG_DIR).relative_to(ROOT)}`")
 
 # Environment / Drive / Outputs panels
 col1, col2, col3 = st.columns(3)
