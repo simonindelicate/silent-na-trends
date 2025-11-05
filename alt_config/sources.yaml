@@ -1,0 +1,64 @@
+# sources.yaml
+reddit:
+  subreddits:
+    - trees
+    - Marijuana
+    - CannabisEdibles
+    - weedbiz
+    - weedstocks
+
+x:
+  # Mix exact phrases, keywords, and account queries via `from:handle`
+  search_terms:
+    # Generic category/tech terms
+    - "THC beverage"
+    - "THC drink"
+    - "THC seltzer"
+    - "cannabis beverage"
+    - "cannabis drinks"
+    - "hemp-derived THC"
+    - "delta-9 seltzer"
+    - "nano-emulsified THC"
+    # Brand/line terms
+    - "Keef Brands"
+    - "CANN social tonic"
+    - "Pabst High Seltzer"
+    - "Lagunitas Hi-Fi"
+    - "Wunder THC"
+    - "Artet"
+    - "Levia seltzer"
+    - "Uncle Arnie's"
+    - "Happi THC"
+    - "Good Feels"
+    # Publisher/brand accounts (X/Twitter)
+    - "from:MJBizDaily"
+    - "from:GreenMarketRpt"
+    - "from:CBTmag"
+    - "from:brewbound"
+    - "from:beverageindustry"
+    - "from:drinkcann"
+    - "from:keefbrands"
+    - "from:pabstlabs"
+    - "from:leviabrands"
+    - "from:drinkartet"
+  tweet_language: "en"
+  days_back: 7
+  max_items: 200
+  sort: "Latest"
+
+news_rss:
+  - "https://greenmarketreport.com/feed/"
+  - "https://cannabisindustryjournal.com/feed/"
+  - "https://www.bevindustry.com/rss/topic/10237-cannabis-beverages"
+
+# Optional for your trends ingestor (kept here since your code checks sources.yaml)
+trends_terms:
+  - "THC seltzer"
+  - "THC drink"
+  - "cannabis beverage"
+  - "hemp-derived THC"
+  - "drinkable cannabis"
+
+trends_geo: US
+trends_time_range: "now 7-d"
+
