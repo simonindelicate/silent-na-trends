@@ -144,7 +144,7 @@ def main():
     md_path = OUT_DIR / md_filename
     save_markdown(md, md_path)
     write_latest_copy(md, OUT_DIR, LATEST_DIR, "weekly_brief.md")
-    print(f"Wrote markdown → {md_path}")
+    print(f"Wrote markdown -> {md_path}")
     print("Next: run scripts/04_markdown_to_docx.py to create the DOCX.")
 
 if __name__ == "__main__":

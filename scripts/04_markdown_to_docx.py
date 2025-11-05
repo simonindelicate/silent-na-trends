@@ -237,4 +237,4 @@ if __name__ == "__main__":
     docx_path = resolve_docx_path(md_path, args.docx)
     doc.save(docx_path)
     write_latest_docx(docx_path, OUT_DIR, LATEST_DIR)
-    print(f"Wrote DOCX → {docx_path}")
+    print(f"Wrote DOCX -> {docx_path}")
